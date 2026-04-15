@@ -1,0 +1,58 @@
+import socket
+
+SERVER_IP = "127.0.0.1"  # Connect to the server on this machine
+PORT = 5000
+
+
+def start_client():
+    client_socket = None
+
+    try:
+        # Create TCP socket
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Optional timeout so the client does not wait forever
+        client_socket.settimeout(5)
+
+        # Connect to the server
+        client_socket.connect((SERVER_IP, PORT))
+        print(f"[+] Connected to server at {SERVER_IP}:{PORT}")
+
+        # Ask the user for a message
+        message = input("Enter message to send: ").strip()
+
+        if not message:
+            print("[!] Empty message. Nothing was sent.")
+            return
+
+        # Send data to the server
+        client_socket.sendall(message.encode("utf-8"))
+        print("[*] Message sent to server.")
+
+        # Receive response from the server
+        response = client_socket.recv(1024)
+
+        if not response:
+            print("[!] No response received from server.")
+            return
+
+        print(f"[SERVER] {response.decode('utf-8')}")
+
+    except socket.timeout:
+        print("[ERROR] Connection timed out.")
+    except ConnectionRefusedError:
+        print("[ERROR] Server is not running or refused the connection.")
+    except UnicodeDecodeError:
+        print("[ERROR] Server response could not be decoded as UTF-8.")
+    except OSError as e:
+        print(f"[ERROR] Network/socket error: {e}")
+    except Exception as e:
+        print(f"[ERROR] Unexpected client error: {e}")
+    finally:
+        if client_socket:
+            client_socket.close()
+            print("[*] Client socket closed.")
+
+
+if __name__ == "__main__":
+    start_client()
